@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  ownedCategories Category[] @relation("OwnedCategories")
+  sharedCategories Category[] @relation("SharedCategories")
+
+  createdTasks    Task[]     @relation("CreatedTasks")
+  assignedTasks   Task[]     @relation("AssignedTasks")
+  sharedTasks     Task[]     @relation("SharedTasks")
+}
+
+model Category {
+  id      String @id @default(uuid())
+  name    String
+  color   String // Hex code or generic color name
+  ownerId String
+  owner   User   @relation("OwnedCategories", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  sharedWith User[] @relation("SharedCategories")
+  tasks      Task[]
+
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  importance  String   @default("Medium") // Low, Medium, High
+  dueDate     DateTime?
+  completed   Boolean  @default(false)
+
+  isRecurring    Boolean   @default(false)
+  recurrenceInterval String? // daily, weekly, monthly, yearly
+  recurrenceWeekDays String? // 1,2,3,4,5,6,0 (Mon-Sun)
+  recurrenceDayOfMonth Int?  // 1-31
+  recurrenceEndDate DateTime?
+  
+  reminder    DateTime?
+
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  creatorId   String
+  creator     User     @relation("CreatedTasks", fields: [creatorId], references: [id])
+
+  assigneeId  String?
+  assignee    User?    @relation("AssignedTasks", fields: [assigneeId], references: [id])
+
+  sharedWith  User[]   @relation("SharedTasks")
+
+  subtasks  SubTask[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SubTask {
+  id        String   @id @default(uuid())
+  title     String
+  completed Boolean  @default(false)
+  
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+}
