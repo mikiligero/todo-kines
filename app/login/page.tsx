@@ -41,11 +41,8 @@ export default function LoginPage() {
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-xl">
                 <div className="flex flex-col items-center mb-8">
-                    <div className={`p-4 rounded-full mb-6 ${isSetupMode
-                        ? 'bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-500'
-                        : 'bg-indigo-100 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-500'
-                        }`}>
-                        {isSetupMode ? <Sparkles size={32} /> : <Lock size={32} />}
+                    <div className={`mb-6 p-1 rounded-2xl bg-white dark:bg-zinc-800 shadow-sm border border-zinc-200 dark:border-zinc-700`}>
+                        <img src="/icon.png" alt="Logo" className="w-16 h-16 rounded-xl" />
                     </div>
                     <h1 className="text-3xl font-bold text-zinc-900 dark:text-white text-center tracking-tight">
                         {isSetupMode ? 'Welcome to Todo Kines' : 'Todo Kines'}

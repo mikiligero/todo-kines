@@ -17,7 +17,10 @@ export function Sidebar({ user, categories, allUsers }: SidebarProps) {
 
     return (
         <aside className="w-64 border-r border-zinc-200 dark:border-zinc-800 p-4 bg-white dark:bg-zinc-900 hidden md:flex flex-col">
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-6 px-2">Todo Kines</h2>
+            <div className="flex items-center gap-2 mb-6 px-2">
+                <img src="/icon.png" alt="Logo" className="w-8 h-8 rounded-lg" />
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Todo Kines</h2>
+            </div>
             <nav className="space-y-1 flex-1">
                 <Link href="/" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium">
                     Dashboard
