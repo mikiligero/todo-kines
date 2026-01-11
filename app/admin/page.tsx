@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma'
 import { getUsers, createUser } from '@/app/actions/admin'
 import Link from 'next/link'
 import { ArrowLeft, UserPlus, Shield } from 'lucide-react'
-import { AdminCreateUserForm, AdminUserList, ExportDataButton } from '@/components/AdminComponents'
+import { AdminCreateUserForm, AdminUserList, ExportDataButton, ImportDataButton } from '@/components/AdminComponents'
 
 
 export default async function AdminPage() {
@@ -27,7 +27,8 @@ export default async function AdminPage() {
                         <Shield className="text-indigo-600 dark:text-indigo-400" />
                         Admin Dashboard
                     </h1>
-                    <div className="ml-auto">
+                    <div className="ml-auto flex gap-2">
+                        <ImportDataButton />
                         <ExportDataButton />
                     </div>
                 </div>

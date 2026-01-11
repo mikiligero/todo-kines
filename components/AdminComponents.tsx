@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { createUser, updateUser, deleteUser } from '@/app/actions/admin'
-import { exportData } from '@/app/actions/export'
-import { Loader2, Edit2, Trash2, Download, Save, X, UserCog } from 'lucide-react'
+import { exportData, importData } from '@/app/actions/export'
+import { Loader2, Edit2, Trash2, Download, Save, X, UserCog, Upload } from 'lucide-react'
 
 export function AdminCreateUserForm() {
     const [loading, setLoading] = useState(false)
@@ -183,6 +183,57 @@ export function ExportDataButton() {
             {loading ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
             Export Data
         </button>
+    )
+}
+
+export function ImportDataButton() {
+    const [loading, setLoading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
+
+    async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        if (!confirm('WARNING: Importing data will overwrite existing items with the same ID. Are you sure you want to proceed?')) {
+            e.target.value = ''
+            return
+        }
+
+        setLoading(true)
+        try {
+            const text = await file.text()
+            const result = await importData(text)
+            if (result.error) {
+                alert(result.error)
+            } else {
+                alert('Data imported successfully! The page will reload.')
+                window.location.reload()
+            }
+        } catch (err) {
+            alert('Failed to read file')
+        }
+        setLoading(false)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+
+    return (
+        <>
+            <input
+                type="file"
+                accept=".json"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+            />
+            <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-lg transition-colors font-medium text-sm"
+            >
+                {loading ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
+                Import Data
+            </button>
+        </>
     )
 }
 
