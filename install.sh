@@ -70,6 +70,13 @@ fi
 echo -e "${BLUE}Building application...${NC}"
 npm run build
 
+# Prepare standalone build
+# https://nextjs.org/docs/pages/api-reference/next-config-js/output#automatically-copying-traced-files
+echo -e "${BLUE}Preparing standalone files...${NC}"
+cp -r public .next/standalone/public
+mkdir -p .next/standalone/.next
+cp -r .next/static .next/standalone/.next/static
+
 # 8. Setup Systemd Service
 echo -e "${BLUE}Configuring systemd service...${NC}"
 cat > /etc/systemd/system/todo-kines.service <<EOL
@@ -81,9 +88,11 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=${APP_DIR}
-ExecStart=/usr/bin/npm start
+ExecStart=/usr/bin/node .next/standalone/server.js
 Restart=always
 Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=0.0.0.0
 
 [Install]
 WantedBy=multi-user.target
