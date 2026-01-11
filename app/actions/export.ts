@@ -59,49 +59,39 @@ export async function importData(jsonData: string) {
                         username: u.username,
                         password: u.password,
                         isAdmin: u.isAdmin,
-                        createdAt: u.createdAt
+                        createdAt: new Date(u.createdAt)
                     },
                     create: {
                         id: u.id,
                         username: u.username,
                         password: u.password,
                         isAdmin: u.isAdmin,
-                        createdAt: u.createdAt
+                        createdAt: new Date(u.createdAt)
                     }
                 })
             }
 
             // 2. Restore Categories
             for (const c of data.categories) {
-                // Category has 'ownerId' which maps to relation 'owner'
-                const ownerConnect = c.ownerId ? { connect: { id: c.ownerId } } : undefined
-
                 await tx.category.upsert({
                     where: { id: c.id },
                     update: {
                         name: c.name,
                         color: c.color,
-                        owner: ownerConnect
+                        ownerId: c.ownerId
                     },
                     create: {
                         id: c.id,
                         name: c.name,
                         color: c.color,
-                        owner: c.ownerId ? { connect: { id: c.ownerId } } : undefined
+                        ownerId: c.ownerId
                     }
-                })
+                } as any) // Type cast to avoid strict relation requirements during build
             }
 
             // 3. Restore Tasks & Subtasks
             for (const t of data.tasks) {
                 const { subtasks, ...taskData } = t
-
-                // Task has 'creatorId' and 'categoryId' (required)
-                const creatorConnect = t.creatorId ? { connect: { id: t.creatorId } } : undefined
-                const categoryConnect = t.categoryId ? { connect: { id: t.categoryId } } : undefined
-
-                // Task might have 'assigneeId' (optional)
-                const assigneeConnect = t.assigneeId ? { connect: { id: t.assigneeId } } : undefined
 
                 await tx.task.upsert({
                     where: { id: t.id },
@@ -111,9 +101,9 @@ export async function importData(jsonData: string) {
                         completed: t.completed,
                         importance: t.importance,
                         dueDate: t.dueDate ? new Date(t.dueDate) : null,
-                        category: categoryConnect, // Required
-                        creator: creatorConnect, // Required
-                        assignee: assigneeConnect, // Optional
+                        categoryId: t.categoryId,
+                        creatorId: t.creatorId,
+                        assigneeId: t.assigneeId,
                         isRecurring: t.isRecurring,
                         recurrenceInterval: t.recurrenceInterval,
                         recurrenceWeekDays: t.recurrenceWeekDays,
@@ -129,9 +119,9 @@ export async function importData(jsonData: string) {
                         completed: t.completed,
                         importance: t.importance,
                         dueDate: t.dueDate ? new Date(t.dueDate) : null,
-                        category: t.categoryId ? { connect: { id: t.categoryId } } : undefined,
-                        creator: t.creatorId ? { connect: { id: t.creatorId } } : undefined,
-                        assignee: t.assigneeId ? { connect: { id: t.assigneeId } } : undefined,
+                        categoryId: t.categoryId,
+                        creatorId: t.creatorId,
+                        assigneeId: t.assigneeId,
                         isRecurring: t.isRecurring,
                         recurrenceInterval: t.recurrenceInterval,
                         recurrenceWeekDays: t.recurrenceWeekDays,
@@ -140,7 +130,7 @@ export async function importData(jsonData: string) {
                         reminder: t.reminder ? new Date(t.reminder) : null,
                         createdAt: t.createdAt ? new Date(t.createdAt) : undefined
                     }
-                })
+                } as any)
 
                 if (subtasks && Array.isArray(subtasks)) {
                     for (const st of subtasks) {
@@ -154,9 +144,9 @@ export async function importData(jsonData: string) {
                                 id: st.id,
                                 title: st.title,
                                 completed: st.completed,
-                                task: { connect: { id: t.id } }
+                                taskId: t.id
                             }
-                        })
+                        } as any)
                     }
                 }
             }
