@@ -12,7 +12,7 @@ export async function getPendingTasks() {
     const today = new Date()
     today.setHours(23, 59, 59, 999)
 
-    return await prisma.task.findMany({
+    const tasks = await prisma.task.findMany({
         where: {
             OR: [
                 { creatorId: session.userId },
@@ -43,6 +43,25 @@ export async function getPendingTasks() {
         orderBy: {
             dueDate: 'asc'
         }
+    })
+
+    const importanceMap: Record<string, number> = { 'High': 1, 'Medium': 2, 'Low': 3 }
+
+    return tasks.sort((a, b) => {
+        // 1. Sort by dueDate
+        if (a.dueDate && b.dueDate) {
+            const dateDiff = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+            if (dateDiff !== 0) return dateDiff
+        } else if (a.dueDate) {
+            return -1 // a has date, b doesn't -> a comes first
+        } else if (b.dueDate) {
+            return 1 // b has date, a doesn't -> b comes first
+        }
+
+        // 2. Sort by Priority (importance)
+        const pA = importanceMap[a.importance] || 2
+        const pB = importanceMap[b.importance] || 2
+        return pA - pB
     })
 }
 
@@ -296,10 +315,28 @@ export async function getSharedTasks() {
                     username: true
                 }
             }
-        },
-        orderBy: {
-            dueDate: 'asc'
         }
+    })
+
+    const importanceMap: Record<string, number> = { 'High': 1, 'Medium': 2, 'Low': 3 }
+    const sortedTasks = tasks.sort((a, b) => {
+        // 1. Sort by completed status first if applicable (though shared tasks usually pending, but safer)
+        if (a.completed !== b.completed) return a.completed ? 1 : -1
+
+        // 2. Sort by dueDate
+        if (a.dueDate && b.dueDate) {
+            const dateDiff = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+            if (dateDiff !== 0) return dateDiff
+        } else if (a.dueDate) {
+            return -1
+        } else if (b.dueDate) {
+            return 1
+        }
+
+        // 3. Sort by Importance
+        const pA = importanceMap[a.importance] || 2
+        const pB = importanceMap[b.importance] || 2
+        return pA - pB
     })
 
     return {
@@ -307,8 +344,8 @@ export async function getSharedTasks() {
         name: 'Shared with me',
         color: '#6366f1',
         ownerId: 'system',
-        tasks: tasks,
-        _count: { tasks: tasks.length }
+        tasks: sortedTasks,
+        _count: { tasks: sortedTasks.length }
     }
 }
 

@@ -113,7 +113,7 @@ export async function getCategoryWithTasks(id: string) {
     const session = await getSession()
     if (!session?.userId) return null
 
-    return await prisma.category.findUnique({
+    const category = await prisma.category.findUnique({
         where: {
             id,
             OR: [
@@ -140,12 +140,34 @@ export async function getCategoryWithTasks(id: string) {
                     sharedWith: {
                         select: { id: true, username: true }
                     }
-                },
-                orderBy: [
-                    { completed: 'asc' },
-                    { dueDate: 'asc' }
-                ]
+                }
             }
         }
     })
+
+    if (!category) return null
+
+    const importanceMap: Record<string, number> = { 'High': 1, 'Medium': 2, 'Low': 3 }
+
+    category.tasks.sort((a, b) => {
+        // 1. Keep pending tasks first
+        if (a.completed !== b.completed) return a.completed ? 1 : -1
+
+        // 2. Sort by dueDate
+        if (a.dueDate && b.dueDate) {
+            const dateDiff = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+            if (dateDiff !== 0) return dateDiff
+        } else if (a.dueDate) {
+            return -1
+        } else if (b.dueDate) {
+            return 1
+        }
+
+        // 3. Sort by Importance
+        const pA = importanceMap[a.importance] || 2
+        const pB = importanceMap[b.importance] || 2
+        return pA - pB
+    })
+
+    return category
 }
