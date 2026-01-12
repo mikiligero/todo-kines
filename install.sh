@@ -59,6 +59,16 @@ if [ -d "$APP_DIR" ]; then
     if [ ! -f ".env" ] && [ -f "/tmp/todo-kines-env.backup" ]; then
         cp /tmp/todo-kines-env.backup .env
     fi
+    
+    # FIX DATABASE URL TO ABSOLUTE PATH (Fixes P2021 "Table not found" in standalone)
+    # If the URL is file:./dev.db or file:dev.db, change it to file:/opt/todo-kines/prisma/dev.db
+    if [ -f ".env" ]; then
+        # Use sed to replace relative paths with full absolute path
+        sed -i 's|file:\./dev.db|file:'$APP_DIR'/prisma/dev.db|g' .env
+        sed -i 's|file:dev.db|file:'$APP_DIR'/prisma/dev.db|g' .env
+        # Also ensure it points to prisma/dev.db even if it was ./prisma/dev.db
+        sed -i 's|file:\./prisma/dev.db|file:'$APP_DIR'/prisma/dev.db|g' .env
+    fi
 else
     echo -e "${BLUE}Cloning repository...${NC}"
     git clone "$REPO_URL" "$APP_DIR"
@@ -76,7 +86,7 @@ if [ ! -f .env ]; then
     AUTH_SECRET=$(openssl rand -base64 32)
     
     cat > .env <<EOL
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="file:${APP_DIR}/prisma/dev.db"
 AUTH_SECRET="${AUTH_SECRET}"
 # Add other env vars here if needed
 EOL
