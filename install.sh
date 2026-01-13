@@ -69,6 +69,11 @@ if [ -d "$APP_DIR" ]; then
         # Also ensure it points to prisma/dev.db even if it was ./prisma/dev.db
         sed -i 's|file:\./prisma/dev.db|file:'$APP_DIR'/prisma/dev.db|g' .env
     fi
+    
+    # ENSURE TIMEZONE IS SET
+    if [ -f ".env" ] && ! grep -q "TZ=" .env; then
+        echo "TZ=\"Europe/Madrid\"" >> .env
+    fi
 else
     echo -e "${BLUE}Cloning repository...${NC}"
     git clone "$REPO_URL" "$APP_DIR"
@@ -88,6 +93,8 @@ if [ ! -f .env ]; then
     cat > .env <<EOL
 DATABASE_URL="file:${APP_DIR}/prisma/dev.db"
 AUTH_SECRET="${AUTH_SECRET}"
+AUTH_SECRET="${AUTH_SECRET}"
+TZ="Europe/Madrid"
 # Add other env vars here if needed
 EOL
     echo -e "${GREEN}.env created.${NC}"
