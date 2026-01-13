@@ -80,7 +80,9 @@ async function sendDailyDigest(userId: string, botToken: string | null, chatId: 
         where: {
             OR: [
                 { creatorId: userId },
-                { assigneeId: userId }
+                { assigneeId: userId },
+                { sharedWith: { some: { id: userId } } },
+                { category: { sharedWith: { some: { id: userId } } } }
             ],
             completed: false
         }
