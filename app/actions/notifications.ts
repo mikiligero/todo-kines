@@ -16,6 +16,8 @@ export async function getNotificationSettings() {
     return settings
 }
 
+import { sendDailyDigest } from '@/lib/scheduler'
+
 export async function saveNotificationSettings(formData: FormData) {
     const session = await getSession()
     if (!session?.userId) return { error: 'Unauthorized' }

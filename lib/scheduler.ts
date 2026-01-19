@@ -61,7 +61,7 @@ async function checkAndSendNotifications() {
     }
 }
 
-async function sendDailyDigest(userId: string, botToken: string | null, chatId: string | null) {
+export async function sendDailyDigest(userId: string, botToken: string | null, chatId: string | null) {
     if (!chatId) return
 
     // Allow user override, or use system default (env var)

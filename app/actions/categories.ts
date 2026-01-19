@@ -168,16 +168,17 @@ export async function getCategoryWithTasks(id: string) {
 
         if (groupA !== groupB) return groupA - groupB
 
-        // Within group, sort by Importance
+        // Within group:
+        // 1. Sort by Date (asc)
+        if (a.dueDate && b.dueDate) {
+            const dateDiff = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+            if (dateDiff !== 0) return dateDiff
+        }
+
+        // 2. Tie breaker: Importance
         const pA = importanceMap[a.importance] || 2
         const pB = importanceMap[b.importance] || 2
-        if (pA !== pB) return pA - pB
-
-        // Tie breaker: Date
-        if (a.dueDate && b.dueDate) {
-            return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-        }
-        return 0
+        return pA - pB
     })
 
     return category
