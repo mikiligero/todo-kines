@@ -308,16 +308,22 @@ function TaskDetailModal({
                 className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]"
                 onClick={e => e.stopPropagation()}
             >
-                <div className="p-5 md:p-6 overflow-y-auto custom-scrollbar">
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto min-h-0 p-5 md:p-6 custom-scrollbar">
                     <div className="flex items-start gap-4 mb-6">
                         <button
-                            onClick={(e) => { e.stopPropagation(); handleToggle(e); }}
-                            className={`shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors mt-1 relative z-10 ${isCompleted
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleToggle(e);
+                            }}
+                            className={`shrink-0 w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all mt-1 relative z-20 active:scale-95 ${isCompleted
                                 ? 'bg-zinc-400 border-zinc-400 dark:bg-zinc-600 dark:border-zinc-600'
-                                : 'border-zinc-300 dark:border-zinc-600 hover:border-indigo-500'
+                                : 'border-zinc-300 dark:border-zinc-600 hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'
                                 }`}
                         >
-                            {isCompleted && <Check size={18} className="text-white" />}
+                            {isCompleted && <Check size={20} className="text-white" />}
                         </button>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-4">
@@ -327,7 +333,7 @@ function TaskDetailModal({
                                             {task.category.name}
                                         </span>
                                     )}
-                                    <h2 className={`text-2xl font-bold text-zinc-900 dark:text-white leading-tight ${isCompleted ? 'line-through text-zinc-500' : ''} break-words`}>
+                                    <h2 className={`text-xl md:text-2xl font-bold text-zinc-900 dark:text-white leading-tight ${isCompleted ? 'line-through text-zinc-500' : ''} break-words`}>
                                         {task.title}
                                     </h2>
                                     {!isOwner && task.creator && (
