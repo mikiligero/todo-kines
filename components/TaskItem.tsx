@@ -271,7 +271,7 @@ export function TaskItem({ task, categories, allUsers, currentUserId }: TaskItem
                     progress={progress}
                     completedSubtasks={completedSubtasks}
                     totalSubtasks={totalSubtasks}
-                    handleToggle={handleToggle}
+                    handleToggle={() => handleToggle()}
                     handleDelete={handleDelete}
                     handleToggleSubTask={handleToggleSubTask}
                     handleDeleteSubTask={handleDeleteSubTask}
@@ -282,6 +282,7 @@ export function TaskItem({ task, categories, allUsers, currentUserId }: TaskItem
                     allUsers={allUsers}
                     currentUserId={currentUserId}
                     onEditSubTask={setEditingSubtask}
+                    isPending={isPending}
                 />
             )}
 
@@ -299,7 +300,7 @@ function TaskDetailModal({
     task, onClose, onEdit, isCompleted, progress, completedSubtasks, totalSubtasks,
     handleToggle, handleDelete, handleToggleSubTask, handleDeleteSubTask, handleAddSubTask,
     newSubTaskTitle, setNewSubTaskTitle, isAddingSubTask, allUsers, currentUserId,
-    onEditSubTask // New prop
+    onEditSubTask, isPending // New prop
 }: any) {
     const isOwner = !currentUserId || task.creatorId === currentUserId
     return (
@@ -314,14 +315,14 @@ function TaskDetailModal({
                         <button
                             type="button"
                             onClick={(e) => {
-                                e.preventDefault();
                                 e.stopPropagation();
-                                handleToggle(e);
+                                handleToggle();
                             }}
+                            disabled={isPending}
                             className={`shrink-0 w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all mt-1 relative z-20 active:scale-95 ${isCompleted
                                 ? 'bg-zinc-400 border-zinc-400 dark:bg-zinc-600 dark:border-zinc-600'
                                 : 'border-zinc-300 dark:border-zinc-600 hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/10'
-                                }`}
+                                } ${isPending ? 'opacity-50 cursor-wait' : ''}`}
                         >
                             {isCompleted && <Check size={20} className="text-white" />}
                         </button>
