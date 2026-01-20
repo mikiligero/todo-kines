@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { toggleTaskCompletion, deleteTask, updateTask, shareTask, unshareTask } from '@/app/actions/tasks'
-import { createSubTask, toggleSubTask, deleteSubTask } from '@/app/actions/subtasks'
-import { Check, Calendar, ChevronDown, ChevronUp, Plus, Trash2, ListTodo, Edit2, X, RotateCcw, Share2, Users, CheckCircle2, Pencil, Repeat } from 'lucide-react'
+import { createSubTask, toggleSubTask, deleteSubTask, updateSubTask } from '@/app/actions/subtasks'
+import { Check, Calendar, ChevronDown, ChevronUp, Plus, Trash2, ListTodo, Edit2, X, RotateCcw, Share2, Users, CheckCircle2, Pencil, Repeat, AlignLeft } from 'lucide-react'
 import { format } from 'date-fns'
 import { RecurrenceFields } from './RecurrenceFields'
 
@@ -22,6 +22,7 @@ export function TaskItem({ task, categories, allUsers, currentUserId }: TaskItem
     const [isAddingSubTask, setIsAddingSubTask] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
     const [showDetailModal, setShowDetailModal] = useState(false)
+    const [editingSubtask, setEditingSubtask] = useState<any>(null)
 
     // Sort subtasks locally just in case, though query helper does it
     const subtasks = task.subtasks || []
@@ -188,24 +189,41 @@ export function TaskItem({ task, categories, allUsers, currentUserId }: TaskItem
                             <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 animate-in slide-in-from-top-2">
                                 <div className="space-y-2 mb-3">
                                     {subtasks.map((st: any) => (
-                                        <div key={st.id} className="flex items-center gap-3 group">
-                                            <button
-                                                onClick={(e) => handleToggleSubTask(e, st.id, st.completed)}
-                                                className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${st.completed
-                                                    ? 'bg-indigo-500 border-indigo-500 text-white'
-                                                    : 'border-zinc-300 dark:border-zinc-600 hover:border-indigo-400'}`}
-                                            >
-                                                {st.completed && <Check size={10} />}
-                                            </button>
-                                            <span className={`text-sm flex-1 ${st.completed ? 'line-through text-zinc-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
-                                                {st.title}
-                                            </span>
-                                            <button
-                                                onClick={(e) => handleDeleteSubTask(e, st.id)}
-                                                className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500 transition-opacity p-1"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
+                                        <div key={st.id} className="group relative">
+                                            <div className="flex items-start gap-3">
+                                                <button
+                                                    onClick={(e) => handleToggleSubTask(e, st.id, st.completed)}
+                                                    className={`shrink-0 w-4 h-4 mt-0.5 rounded border flex items-center justify-center transition-colors ${st.completed
+                                                        ? 'bg-indigo-500 border-indigo-500 text-white'
+                                                        : 'border-zinc-300 dark:border-zinc-600 hover:border-indigo-400'}`}
+                                                >
+                                                    {st.completed && <Check size={10} />}
+                                                </button>
+                                                <div className="flex-1 min-w-0">
+                                                    <span className={`text-sm block ${st.completed ? 'line-through text-zinc-400' : 'text-zinc-700 dark:text-zinc-300'}`}>
+                                                        {st.title}
+                                                    </span>
+                                                    {st.description && (
+                                                        <p className={`text-xs mt-0.5 ${st.completed ? 'text-zinc-300' : 'text-zinc-500 dark:text-zinc-400'} line-clamp-2`}>
+                                                            {st.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); setEditingSubtask(st) }}
+                                                        className="text-zinc-400 hover:text-indigo-500 p-1"
+                                                    >
+                                                        <Pencil size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => handleDeleteSubTask(e, st.id)}
+                                                        className="text-zinc-400 hover:text-red-500 p-1"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -263,6 +281,14 @@ export function TaskItem({ task, categories, allUsers, currentUserId }: TaskItem
                     isAddingSubTask={isAddingSubTask}
                     allUsers={allUsers}
                     currentUserId={currentUserId}
+                    onEditSubTask={setEditingSubtask}
+                />
+            )}
+
+            {editingSubtask && (
+                <EditSubTaskModal
+                    subtask={editingSubtask}
+                    onClose={() => setEditingSubtask(null)}
                 />
             )}
         </>
@@ -272,13 +298,17 @@ export function TaskItem({ task, categories, allUsers, currentUserId }: TaskItem
 function TaskDetailModal({
     task, onClose, onEdit, isCompleted, progress, completedSubtasks, totalSubtasks,
     handleToggle, handleDelete, handleToggleSubTask, handleDeleteSubTask, handleAddSubTask,
-    newSubTaskTitle, setNewSubTaskTitle, isAddingSubTask, allUsers, currentUserId
+    newSubTaskTitle, setNewSubTaskTitle, isAddingSubTask, allUsers, currentUserId,
+    onEditSubTask // New prop
 }: any) {
     const isOwner = !currentUserId || task.creatorId === currentUserId
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-2xl shadow-2xl p-0 overflow-hidden relative animate-in zoom-in-95 duration-200">
-                <div className="p-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in" onClick={onClose}>
+            <div
+                className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar">
                     <div className="flex items-start gap-4 mb-6">
                         <button
                             onClick={handleToggle}
@@ -417,24 +447,39 @@ function TaskDetailModal({
 
                     <div className="space-y-2 mb-6 max-h-60 overflow-auto pr-2 custom-scrollbar">
                         {task.subtasks?.map((st: any) => (
-                            <div key={st.id} className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/30 rounded-xl group hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                            <div key={st.id} className="flex items-start gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/30 rounded-xl group hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                                 <button
                                     onClick={() => handleToggleSubTask(st.id, st.completed)}
-                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${st.completed
+                                    className={`shrink-0 w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center transition-colors ${st.completed
                                         ? 'bg-indigo-500 border-indigo-500 text-white'
                                         : 'border-zinc-300 dark:border-zinc-600 hover:border-indigo-400'}`}
                                 >
                                     {st.completed && <Check size={12} />}
                                 </button>
-                                <span className={`text-zinc-700 dark:text-zinc-200 flex-1 ${st.completed ? 'line-through text-zinc-400' : ''}`}>
-                                    {st.title}
-                                </span>
-                                <button
-                                    onClick={() => handleDeleteSubTask(st.id)}
-                                    className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500 transition-opacity p-1"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
+                                <div className="flex-1 min-w-0">
+                                    <span className={`text-zinc-700 dark:text-zinc-200 block ${st.completed ? 'line-through text-zinc-400' : ''}`}>
+                                        {st.title}
+                                    </span>
+                                    {st.description && (
+                                        <p className={`text-xs mt-1 ${st.completed ? 'text-zinc-300' : 'text-zinc-500 dark:text-zinc-400'}`}>
+                                            {st.description}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        onClick={() => onEditSubTask(st)}
+                                        className="text-zinc-400 hover:text-indigo-500 p-1"
+                                    >
+                                        <Edit2 size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteSubTask(st.id)}
+                                        className="text-zinc-400 hover:text-red-500 p-1"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -538,6 +583,58 @@ function EditTaskModal({ task, categories, onClose }: { task: any, categories: a
                     <div className="pt-2 flex justify-end gap-2">
                         <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 rounded-lg">Cancel</button>
                         <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
+}
+
+function EditSubTaskModal({ subtask, onClose }: { subtask: any, onClose: () => void }) {
+    const [loading, setLoading] = useState(false)
+
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
+        setLoading(true)
+        const formData = new FormData(e.currentTarget)
+        await updateSubTask(subtask.id, formData)
+        setLoading(false)
+        onClose()
+    }
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm shadow-2xl p-6 relative">
+                <button onClick={onClose} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                    <X size={20} />
+                </button>
+
+                <h2 className="text-lg font-bold mb-4 text-zinc-900 dark:text-white">Edit Subtask</h2>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Title</label>
+                        <input
+                            name="title"
+                            defaultValue={subtask.title}
+                            required
+                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Description (Optional)</label>
+                        <textarea
+                            name="description"
+                            defaultValue={subtask.description || ''}
+                            className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 h-24 resize-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                            placeholder="Add details..."
+                        />
+                    </div>
+
+                    <div className="pt-2 flex justify-end gap-2">
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800 rounded-lg">Cancel</button>
+                        <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg">Save</button>
                     </div>
                 </form>
             </div>
