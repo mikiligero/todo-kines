@@ -101,13 +101,15 @@ export function TaskItem({ task, categories, allUsers, currentUserId }: TaskItem
                                         <RotateCcw size={16} />
                                     </button>
                                 )}
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); setShowEditModal(true) }}
-                                    className="text-zinc-400 hover:text-indigo-600 p-1"
-                                    title="Edit Task"
-                                >
-                                    <Edit2 size={16} />
-                                </button>
+                                {!isCompleted && (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setShowEditModal(true) }}
+                                        className="text-zinc-400 hover:text-indigo-600 p-1"
+                                        title="Edit Task"
+                                    >
+                                        <Edit2 size={16} />
+                                    </button>
+                                )}
                                 <button
                                     onClick={(e) => handleDelete(e)}
                                     className="text-zinc-400 hover:text-red-500 p-1"
@@ -306,9 +308,11 @@ function TaskDetailModal({
                                     )}
                                 </div>
                                 <div className="flex gap-2 shrink-0">
-                                    <button onClick={onEdit} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full text-zinc-600 dark:text-zinc-400 transition-colors">
-                                        <Edit2 size={20} />
-                                    </button>
+                                    {!isCompleted && (
+                                        <button onClick={onEdit} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full text-zinc-600 dark:text-zinc-400 transition-colors">
+                                            <Edit2 size={20} />
+                                        </button>
+                                    )}
                                     <button onClick={onClose} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full text-zinc-600 dark:text-zinc-400 transition-colors">
                                         <X size={20} />
                                     </button>
