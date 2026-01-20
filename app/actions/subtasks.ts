@@ -22,6 +22,30 @@ export async function createSubTask(taskId: string, title: string) {
     }
 }
 
+export async function updateSubTask(id: string, formData: FormData) {
+    const session = await getSession()
+    if (!session?.userId) return { error: 'Unauthorized' }
+
+    const title = formData.get('title') as string
+    const description = formData.get('description') as string
+
+    if (!title) return { error: 'Title required' }
+
+    try {
+        await prisma.subTask.update({
+            where: { id },
+            data: {
+                title,
+                description
+            }
+        })
+        revalidatePath('/')
+        return { success: true }
+    } catch (e) {
+        return { error: 'Failed to update subtask' }
+    }
+}
+
 export async function toggleSubTask(id: string, completed: boolean) {
     const session = await getSession()
     if (!session?.userId) return { error: 'Unauthorized' }
