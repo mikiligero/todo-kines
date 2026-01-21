@@ -474,7 +474,7 @@ function TaskDetailModal({
                         {task.subtasks?.map((st: any) => (
                             <div key={st.id} className="flex items-start gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/30 rounded-xl group hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                                 <button
-                                    onClick={() => handleToggleSubTask(st.id, st.completed)}
+                                    onClick={(e) => handleToggleSubTask(e, st.id, st.completed)}
                                     className={`shrink-0 w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center transition-colors ${st.completed
                                         ? 'bg-indigo-500 border-indigo-500 text-white'
                                         : 'border-zinc-300 dark:border-zinc-600 hover:border-indigo-400'}`}
