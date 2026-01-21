@@ -227,16 +227,16 @@ export function TaskItem({ task, categories, allUsers, currentUserId }: TaskItem
                                                         </p>
                                                     )}
                                                 </div>
-                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); setEditingSubtask(st) }}
-                                                        className="text-zinc-400 hover:text-indigo-500 p-1"
+                                                        className="text-zinc-400 dark:text-zinc-500 hover:text-indigo-500 p-1"
                                                     >
                                                         <Pencil size={14} />
                                                     </button>
                                                     <button
                                                         onClick={(e) => handleDeleteSubTask(e, st.id)}
-                                                        className="text-zinc-400 hover:text-red-500 p-1"
+                                                        className="text-zinc-400 dark:text-zinc-500 hover:text-red-500 p-1"
                                                     >
                                                         <Trash2 size={14} />
                                                     </button>
@@ -491,16 +491,16 @@ function TaskDetailModal({
                                         </p>
                                     )}
                                 </div>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                     <button
                                         onClick={() => onEditSubTask(st)}
-                                        className="text-zinc-400 hover:text-indigo-500 p-1"
+                                        className="text-zinc-400 dark:text-zinc-500 hover:text-indigo-500 p-1"
                                     >
                                         <Edit2 size={16} />
                                     </button>
                                     <button
                                         onClick={() => handleDeleteSubTask(st.id)}
-                                        className="text-zinc-400 hover:text-red-500 p-1"
+                                        className="text-zinc-400 dark:text-zinc-500 hover:text-red-500 p-1"
                                     >
                                         <Trash2 size={16} />
                                     </button>
