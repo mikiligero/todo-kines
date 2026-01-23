@@ -2,8 +2,13 @@ import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 import bcrypt from 'bcryptjs'
 
-const SECRET_KEY = process.env.AUTH_SECRET || process.env.JWT_SECRET || 'default-secret-key-change-it'
-const key = new TextEncoder().encode(SECRET_KEY)
+const SECRET_KEY = process.env.AUTH_SECRET || process.env.JWT_SECRET
+if (!SECRET_KEY) {
+    console.warn('⚠️ AUTH_SECRET or JWT_SECRET not found in environment variables. Using default key.')
+}
+const key = new TextEncoder().encode(SECRET_KEY || 'default-secret-key-change-it')
+
+const COOKIE_NAME = 'todo_kines_session'
 
 export async function hashPassword(password: string): Promise<string> {
     return await bcrypt.hash(password, 10)
@@ -28,13 +33,14 @@ export async function decrypt(input: string): Promise<any> {
         })
         return payload
     } catch (error) {
+        console.error('❌ Failed to decrypt session token:', error instanceof Error ? error.message : error)
         return null
     }
 }
 
 export async function getSession() {
     const cookieStore = await cookies()
-    const session = cookieStore.get('session')?.value
+    const session = cookieStore.get(COOKIE_NAME)?.value
     if (!session) return null
     return await decrypt(session)
 }
@@ -44,7 +50,7 @@ export async function createSession(userId: string) {
     const session = await encrypt({ userId, expires })
 
     const cookieStore = await cookies()
-    cookieStore.set('session', session, {
+    cookieStore.set(COOKIE_NAME, session, {
         httpOnly: true,
         // Disable secure in production if we are not using HTTPS (common in local LXC/Proxmox)
         // You can enable it by setting REQUIRE_SECURE_AUTH=true in .env
@@ -56,5 +62,6 @@ export async function createSession(userId: string) {
 }
 
 export async function deleteSession() {
-    ; (await cookies()).delete('session')
+    ; (await cookies()).delete(COOKIE_NAME)
 }
+

@@ -3,32 +3,38 @@ import type { NextRequest } from 'next/server'
 import { decrypt } from '@/lib/auth-utils'
 
 export async function middleware(request: NextRequest) {
-    // 1. Check session for redirection on login page
-    const sessionCookie = request.cookies.get('session')?.value
+    const pathname = request.nextUrl.pathname
+
+    // 1. Decrypt session from new cookie name
+    const sessionCookie = request.cookies.get('todo_kines_session')?.value
     const session = sessionCookie ? await decrypt(sessionCookie) : null
 
-    if (request.nextUrl.pathname === '/login' && session?.userId) {
+    // 2. Redirection logic for authenticated users on /login
+    if (pathname === '/login' && session?.userId) {
+        console.log('✅ Auth user redirected to home from /login')
         return NextResponse.redirect(new URL('/', request.url))
     }
 
-    // 2. Check for public routes
+    // 3. Check for public routes
     const isPublicRoute =
-        request.nextUrl.pathname.startsWith('/login') ||
-        request.nextUrl.pathname.startsWith('/api') ||
-        request.nextUrl.pathname.startsWith('/_next') ||
-        request.nextUrl.pathname.includes('.')
+        pathname.startsWith('/login') ||
+        pathname.startsWith('/api') ||
+        pathname.startsWith('/_next') ||
+        pathname.includes('.')
 
     if (isPublicRoute) {
         return NextResponse.next()
     }
 
-    // 3. Check for session cookie (Protected routes)
+    // 4. Protection for everything else
     if (!session?.userId) {
+        console.log(`🔒 Unauth redirect from ${pathname} to /login`)
         return NextResponse.redirect(new URL('/login', request.url))
     }
 
     return NextResponse.next()
 }
+
 
 export const config = {
     matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
